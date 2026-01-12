@@ -20,6 +20,10 @@ export interface User {
 }
 
 export interface TimetableEvent {
+  /**
+   * MongoDB internal identifier (Fixes App.tsx:96)
+   */
+  _id?: string;
   id: string;
   title: string;
   code?: string;
@@ -38,6 +42,10 @@ export interface TimetableEvent {
 }
 
 export interface Task {
+  /**
+   * MongoDB internal identifier (Fixes App.tsx:106, 111)
+   */
+  _id?: string;
   id: string;
   title: string;
   description: string;
@@ -55,6 +63,10 @@ export interface Attachment {
 }
 
 export interface Note {
+  /**
+   * MongoDB internal identifier
+   */
+  _id?: string;
   id: string;
   eventId: string;
   content: string;
