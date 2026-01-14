@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -14,28 +15,54 @@ import { TRANSLATIONS } from './constants';
 import { api } from './services/api';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [user, setUser] = useState<User | null>(null);
-  const [darkMode, setDarkMode] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'vi'>('vi');
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const savedUser = localStorage.getItem('user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
+  const [language, setLanguage] = useState<'en' | 'vi'>(() => {
+    const savedLanguage = localStorage.getItem('language') as 'en' | 'vi';
+    return savedLanguage || 'vi';
+  });
   const [events, setEvents] = useState<TimetableEvent[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const resetToken = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('token') || params.get('resetToken');
+  }, [location.search]);
+
+  const TAB_ROUTES: Record<string, string> = {
+    dashboard: '/dashboard',
+    timetable: '/timetable',
+    tasks: '/tasks',
+    notes: '/notes',
+    reminders: '/reminders',
+    profile: '/profile'
+  };
+  const ROUTE_TABS: Record<string, string> = {
+    '/': 'dashboard',
+    '/dashboard': 'dashboard',
+    '/timetable': 'timetable',
+    '/tasks': 'tasks',
+    '/notes': 'notes',
+    '/reminders': 'reminders',
+    '/profile': 'profile'
+  };
+  const activeTab = ROUTE_TABS[location.pathname] || 'dashboard';
 
   const t = TRANSLATIONS[language];
 
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    const savedLanguage = localStorage.getItem('language') as 'en' | 'vi';
-    const savedUser = localStorage.getItem('user');
-
-    if (savedUser) setUser(JSON.parse(savedUser));
-    if (savedLanguage) setLanguage(savedLanguage);
-    setDarkMode(savedDarkMode);
-
-    if (savedUser) {
+    if (user) {
       fetchInitialData();
     }
   }, []);
@@ -48,11 +75,16 @@ const App: React.FC = () => {
         api.tasks.getAll(),
         api.notes.getAll()
       ]);
-      setEvents(eventsData);
-      setTasks(tasksData);
-      setNotes(notesData);
+      setEvents(eventsData.map((e: any) => ({ ...e, id: e.id || e._id })));
+      setTasks(tasksData.map((t: any) => ({ ...t, id: t.id || t._id })));
+      setNotes(notesData.map((n: any) => ({ ...n, id: n.id || n._id })));
     } catch (err) {
-      console.error('Error fetching data:', err);
+      // Unauthorized -> force logout
+      if ((err as any)?.code === 401) {
+        handleLogout();
+      } else {
+        console.error('Error fetching data:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -74,6 +106,9 @@ const App: React.FC = () => {
     localStorage.setItem('user', JSON.stringify(u));
     setUser(u);
     fetchInitialData();
+    if (location.pathname === '/login' || location.pathname === '/reset') {
+      navigate('/dashboard', { replace: true });
+    }
   };
 
   const handleLogout = () => {
@@ -83,12 +118,13 @@ const App: React.FC = () => {
     setEvents([]);
     setTasks([]);
     setNotes([]);
-    setActiveTab('dashboard');
+    navigate('/login', { replace: true });
   };
 
   const addEvent = async (event: any) => {
     const newEvent = await api.events.create(event);
-    setEvents(prev => [...prev, newEvent]);
+    setEvents(prev => [...prev, { ...newEvent, id: newEvent.id || newEvent._id }]);
+    return { ...newEvent, id: newEvent.id || newEvent._id };
   };
 
   const deleteEvent = async (id: string) => {
@@ -96,14 +132,25 @@ const App: React.FC = () => {
     setEvents(prev => prev.filter(e => e._id !== id && e.id !== id));
   };
 
+  const updateEvent = async (id: string, updates: any) => {
+    const updated = await api.events.update(id, updates);
+    setEvents(prev => prev.map(ev => {
+      const evId = ev.id || (ev as any)._id;
+      return evId === id ? { ...updated, id: updated.id || updated._id || evId } : ev;
+    }));
+  };
+
   const addTask = async (task: any) => {
     const newTask = await api.tasks.create(task);
-    setTasks(prev => [...prev, newTask]);
+    setTasks(prev => [...prev, { ...newTask, id: newTask.id || newTask._id }]);
   };
 
   const updateTask = async (id: string, updates: any) => {
     const updated = await api.tasks.update(id, updates);
-    setTasks(prev => prev.map(t => (t._id === id || t.id === id) ? updated : t));
+    setTasks(prev => prev.map(t => {
+      const taskId = t._id || t.id;
+      return taskId === id ? { ...updated, id: updated.id || updated._id || taskId } : t;
+    }));
   };
 
   const deleteTask = async (id: string) => {
@@ -113,11 +160,18 @@ const App: React.FC = () => {
 
   const saveNote = async (note: any) => {
     const saved = await api.notes.save(note);
+    const normalized = { ...saved, id: saved.id || saved._id };
     setNotes(prev => {
       const exists = prev.find(n => n.eventId === note.eventId);
-      if (exists) return prev.map(n => n.eventId === note.eventId ? saved : n);
-      return [...prev, saved];
+      if (exists) return prev.map(n => n.eventId === note.eventId ? normalized : n);
+      return [...prev, normalized];
     });
+  };
+
+  const deleteNote = async (note: Note) => {
+    const noteId = note._id || note.id;
+    await api.notes.delete(noteId);
+    setNotes(prev => prev.filter(n => (n._id || n.id) !== noteId));
   };
 
   const handleUpdateUser = async (updatedUser: User) => {
@@ -127,9 +181,35 @@ const App: React.FC = () => {
   };
 
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
+    const nextPath = TAB_ROUTES[tab] || '/dashboard';
+    if (location.pathname !== nextPath) {
+      navigate(nextPath);
+    }
     setIsMobileMenuOpen(false);
   };
+
+  useEffect(() => {
+    if (user) {
+      if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/reset') {
+        navigate('/dashboard', { replace: true });
+      }
+      return;
+    }
+    if (!resetToken && location.pathname === '/') {
+      navigate('/login', { replace: true });
+    }
+  }, [user, location.pathname, resetToken, navigate]);
+
+  if (resetToken) {
+    return (
+      <AuthForm
+        onLogin={handleLogin}
+        t={t}
+        resetToken={resetToken}
+        onResetComplete={() => navigate('/login', { replace: true })}
+      />
+    );
+  }
 
   if (!user) {
     return <AuthForm onLogin={handleLogin} t={t} />;
@@ -161,7 +241,7 @@ const App: React.FC = () => {
         <Header 
           activeTab={activeTab} 
           user={user} 
-          onNotificationClick={() => setActiveTab('reminders')}
+          onNotificationClick={() => handleTabChange('reminders')}
           onMenuClick={() => setIsMobileMenuOpen(true)}
           darkMode={darkMode}
           t={t}
@@ -175,17 +255,13 @@ const App: React.FC = () => {
           ) : (
             <>
               {activeTab === 'dashboard' && (
-                <Dashboard user={user} events={events} tasks={tasks} onNavigate={setActiveTab} language={language} t={t} />
+                <Dashboard user={user} events={events} tasks={tasks} onNavigate={handleTabChange} language={language} t={t} />
               )}
               {activeTab === 'timetable' && (
                 <Timetable 
-                  events={events} onAddEvent={addEvent} onDeleteEvent={deleteEvent}
-                  onUpdateEvent={(id, updates) => {
-                    const existing = events.find(e => e.id === id || e._id === id);
-                    if (existing) {
-                        // For simplicity in this session, using functional update if needed
-                    }
-                  }} darkMode={darkMode} language={language} t={t}
+                  events={events} notes={notes} onSaveNote={saveNote}
+                  onAddEvent={addEvent} onDeleteEvent={deleteEvent}
+                  onUpdateEvent={updateEvent} darkMode={darkMode} language={language} t={t}
                 />
               )}
               {activeTab === 'tasks' && (
@@ -196,12 +272,20 @@ const App: React.FC = () => {
               )}
               {activeTab === 'notes' && (
                 <NoteManager 
-                  notes={notes} events={events} onSaveNote={saveNote}
+                  notes={notes} events={events} onSaveNote={saveNote} onDeleteNote={deleteNote}
                   darkMode={darkMode} language={language} t={t}
                 />
               )}
               {activeTab === 'reminders' && (
-                <Reminders tasks={tasks} events={events} darkMode={darkMode} t={t} />
+                <Reminders 
+                  tasks={tasks} 
+                  events={events} 
+                  darkMode={darkMode} 
+                  t={t} 
+                  onUpdateTask={updateTask} 
+                  language={language}
+                  notificationChannels={user.notificationChannels || ['EMAIL']}
+                />
               )}
               {activeTab === 'profile' && (
                 <Profile user={user} onUpdateUser={handleUpdateUser} darkMode={darkMode} t={t} />

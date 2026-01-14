@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NAV_ITEMS } from '../../constants';
 import { LogOut, Sun, Moon, Globe, X } from 'lucide-react';
 
@@ -18,6 +19,21 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ 
   activeTab, onTabChange, onLogout, darkMode, toggleDarkMode, language, setLanguage, t, isMobileOpen 
 }) => {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutConfirm(false);
+    onLogout();
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
+
   const sidebarClasses = `
     fixed inset-y-0 left-0 z-50 w-72 flex-shrink-0 flex flex-col border-r transition-all duration-300 transform
     md:relative md:translate-x-0 md:flex
@@ -94,13 +110,43 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
         
         <button
-          onClick={onLogout}
+          onClick={handleLogoutClick}
           className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10`}
         >
           <LogOut className="w-5 h-5" />
           <span className="font-bold">{t.signOut}</span>
         </button>
       </div>
+
+      {showLogoutConfirm && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className={`w-full max-w-sm rounded-2xl shadow-2xl border ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+              <p className="text-lg font-bold">
+                {language === 'vi' ? 'Xác nhận đăng xuất' : 'Confirm sign out'}
+              </p>
+              <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">
+                {language === 'vi' ? 'Bạn có chắc chắn muốn đăng xuất khỏi UniFlow?' : 'Are you sure you want to sign out of UniFlow?'}
+              </p>
+            </div>
+            <div className="p-4 flex gap-3 justify-end">
+              <button
+                onClick={handleCancelLogout}
+                className="px-4 py-2 rounded-lg font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleConfirmLogout}
+                className="px-4 py-2 rounded-lg font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm"
+              >
+                {language === 'vi' ? 'Đăng xuất' : 'Sign out'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </aside>
   );
 };

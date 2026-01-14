@@ -9,6 +9,8 @@ Tài liệu này liệt kê các điểm cuối (Endpoints) cần thiết để 
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/auth/register` | Đăng ký tài khoản mới | `{ email, password, fullName, major }` |
 | `POST` | `/api/auth/login` | Đăng nhập | `{ email, password }` |
+| `POST` | `/api/auth/forgot-password` | Request password reset link | `{ email }` |
+| `POST` | `/api/auth/reset-password` | Reset password using token | `{ token, password }` |
 | `GET` | `/api/user/profile` | Lấy thông tin cá nhân | (Yêu cầu Token) |
 | `PUT` | `/api/user/profile` | Cập nhật hồ sơ | `{ fullName, major, avatar }` |
 

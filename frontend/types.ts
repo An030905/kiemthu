@@ -17,6 +17,7 @@ export interface User {
   fullName: string;
   major: string;
   avatar?: string;
+  notificationChannels?: ('EMAIL' | 'PUSH')[];
 }
 
 export interface TimetableEvent {
@@ -35,7 +36,6 @@ export interface TimetableEvent {
   startTime: string; // HH:mm
   endTime: string; // HH:mm
   startDate: string; // YYYY-MM-DD
-  endDate: string; // YYYY-MM-DD
   color: string;
   notes?: string;
   reminderMinutes?: number;
@@ -54,6 +54,25 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   relatedEventId?: string;
   attachments: Attachment[];
+  reminderEnabled?: boolean;
+  reminderMinutesBefore?: number;
+  reminderAt?: string;
+  reminderSent?: boolean;
+}
+
+export interface Notification {
+  _id?: string;
+  id?: string;
+  userId: string;
+  targetId: string;
+  targetType: 'TASK' | 'EVENT';
+  channel: 'EMAIL' | 'PUSH';
+  sendAt: string;
+  status: 'PENDING' | 'SENT' | 'FAILED' | 'CANCELED';
+  error?: string;
+  title?: string;
+  remindBefore?: number;
+  dueDate?: string;
 }
 
 export interface Attachment {
@@ -71,4 +90,6 @@ export interface Note {
   eventId: string;
   content: string;
   updatedAt: string;
+  reminderEnabled?: boolean;
+  reminderAt?: string;
 }
