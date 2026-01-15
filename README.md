@@ -1,7 +1,3 @@
-<div align="center">
-  <img width="1200" height="475" alt="UniFlow Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # UniFlow Monorepo
 
 Hệ thống quản lý học tập dành cho môn kiểm thử: quản lý thời khóa biểu, bài tập, ghi chú, nhắc nhở và báo cáo. Dự án tách riêng Frontend/Backend để dễ phát triển và kiểm thử.
