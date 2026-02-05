@@ -1,0 +1,250 @@
+{
+    "info": {
+        "name": "Auth & Event Test Collection",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5050"
+        },
+        {
+            "key": "token",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Register",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const data = pm.iterationData ? pm.iterationData.toObject() : {};",
+                                    "if (data.request && data.request !== pm.info.requestName) {",
+                                    "  pm.execution.skipRequest();",
+                                    "}",
+                                    "if (data.body) {",
+                                    "  pm.request.body.raw = typeof data.body === 'string' ? data.body : JSON.stringify(data.body);",
+                                    "}"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const expectedStatus = pm.iterationData.get('expectedStatus');",
+                                    "if (expectedStatus) {",
+                                    "  pm.test(`Status ${expectedStatus}`, function () {",
+                                    "    pm.response.to.have.status(parseInt(expectedStatus, 10));",
+                                    "  });",
+                                    "}",
+                                    "const expectedMessageContains = pm.iterationData.get('expectedMessageContains');",
+                                    "if (expectedMessageContains) {",
+                                    "  pm.test(`Message contains: ${expectedMessageContains}`, function () {",
+                                    "    const json = pm.response.json();",
+                                    "    const msg = json.message || json.error || '';",
+                                    "    pm.expect(msg).to.include(expectedMessageContains);",
+                                    "  });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const data = pm.iterationData ? pm.iterationData.toObject() : {};",
+                                    "if (data.request && data.request !== pm.info.requestName) {",
+                                    "  pm.execution.skipRequest();",
+                                    "}",
+                                    "if (data.body) {",
+                                    "  pm.request.body.raw = typeof data.body === 'string' ? data.body : JSON.stringify(data.body);",
+                                    "}"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const expectedStatus = pm.iterationData.get('expectedStatus');",
+                                    "if (expectedStatus) {",
+                                    "  pm.test(`Status ${expectedStatus}`, function () {",
+                                    "    pm.response.to.have.status(parseInt(expectedStatus, 10));",
+                                    "  });",
+                                    "}",
+                                    "if (pm.response.code === 200) {",
+                                    "  const json = pm.response.json();",
+                                    "  if (json.token) {",
+                                    "    pm.collectionVariables.set('token', json.token);",
+                                    "  }",
+                                    "}",
+                                    "const expectedMessageContains = pm.iterationData.get('expectedMessageContains');",
+                                    "if (expectedMessageContains) {",
+                                    "  pm.test(`Message contains: ${expectedMessageContains}`, function () {",
+                                    "    const json = pm.response.json();",
+                                    "    const msg = json.message || json.error || '';",
+                                    "    pm.expect(msg).to.include(expectedMessageContains);",
+                                    "  });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Events",
+            "item": [
+                {
+                    "name": "Create Event",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const data = pm.iterationData ? pm.iterationData.toObject() : {};",
+                                    "if (data.request && data.request !== pm.info.requestName) {",
+                                    "  pm.execution.skipRequest();",
+                                    "}",
+                                    "if (data.body) {",
+                                    "  pm.request.body.raw = typeof data.body === 'string' ? data.body : JSON.stringify(data.body);",
+                                    "}"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const expectedStatus = pm.iterationData.get('expectedStatus');",
+                                    "if (expectedStatus) {",
+                                    "  pm.test(`Status ${expectedStatus}`, function () {",
+                                    "    pm.response.to.have.status(parseInt(expectedStatus, 10));",
+                                    "  });",
+                                    "}",
+                                    "const expectedMessageContains = pm.iterationData.get('expectedMessageContains');",
+                                    "if (expectedMessageContains) {",
+                                    "  pm.test(`Message contains: ${expectedMessageContains}`, function () {",
+                                    "    const json = pm.response.json();",
+                                    "    const msg = json.message || json.error || '';",
+                                    "    pm.expect(msg).to.include(expectedMessageContains);",
+                                    "  });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/events",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "events"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

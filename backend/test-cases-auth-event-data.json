@@ -1,0 +1,210 @@
+[
+    {
+        "request": "Register",
+        "case": "Đăng ký thành công",
+        "body": {
+            "email": "newuser@example.com",
+            "password": "StrongPass123",
+            "fullName": "Nguyen Van A"
+        },
+        "expectedStatus": 201,
+        "expectedMessageContains": ""
+    },
+    {
+        "request": "Register",
+        "case": "Email đã tồn tại",
+        "body": {
+            "email": "test@example.com",
+            "password": "StrongPass123",
+            "fullName": "Nguyen Van A"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "User already exists"
+    },
+    {
+        "request": "Register",
+        "case": "Email không hợp lệ",
+        "body": {
+            "email": "bad-email",
+            "password": "StrongPass123",
+            "fullName": "Nguyen Van A"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid email"
+    },
+    {
+        "request": "Register",
+        "case": "Mật khẩu quá ngắn",
+        "body": {
+            "email": "newuser2@example.com",
+            "password": "short",
+            "fullName": "Nguyen Van A"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Password must be at least"
+    },
+    {
+        "request": "Register",
+        "case": "Thiếu tên",
+        "body": {
+            "email": "newuser3@example.com",
+            "password": "StrongPass123"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Full name is required"
+    },
+    {
+        "request": "Register",
+        "case": "Thiếu mật khẩu",
+        "body": {
+            "email": "newuser4@example.com",
+            "fullName": "Nguyen Van A"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Password must be at least"
+    },
+    {
+        "request": "Register",
+        "case": "Thiếu email",
+        "body": {
+            "password": "StrongPass123",
+            "fullName": "Nguyen Van A"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid email"
+    },
+    {
+        "request": "Login",
+        "case": "Đăng nhập thành công",
+        "body": {
+            "email": "test@example.com",
+            "password": "password123"
+        },
+        "expectedStatus": 200,
+        "expectedMessageContains": ""
+    },
+    {
+        "request": "Login",
+        "case": "Sai mật khẩu",
+        "body": {
+            "email": "test@example.com",
+            "password": "WrongPass"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid credentials"
+    },
+    {
+        "request": "Login",
+        "case": "Email không hợp lệ",
+        "body": {
+            "email": "bad-email",
+            "password": "password123"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid credentials"
+    },
+    {
+        "request": "Login",
+        "case": "Thiếu mật khẩu",
+        "body": {
+            "email": "test@example.com"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid credentials"
+    },
+    {
+        "request": "Login",
+        "case": "Email không tồn tại",
+        "body": {
+            "email": "missing@example.com",
+            "password": "password123"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid credentials"
+    },
+    {
+        "request": "Create Event",
+        "case": "Không có token",
+        "body": {
+            "title": "Event No Token",
+            "startDate": "2026-02-10",
+            "startTime": "09:00",
+            "endTime": "10:00"
+        },
+        "expectedStatus": 401,
+        "expectedMessageContains": "No token"
+    },
+    {
+        "request": "Create Event",
+        "case": "Thiếu trường bắt buộc",
+        "body": {},
+        "expectedStatus": 400,
+        "expectedMessageContains": "Missing required fields"
+    },
+    {
+        "request": "Create Event",
+        "case": "Loại sự kiện không hợp lệ",
+        "body": {
+            "title": "Event A",
+            "type": "INVALID",
+            "startDate": "2026-02-10",
+            "startTime": "09:00",
+            "endTime": "10:00"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid event type"
+    },
+    {
+        "request": "Create Event",
+        "case": "Ngày bắt đầu không hợp lệ",
+        "body": {
+            "title": "Event A",
+            "type": "REGULAR",
+            "startDate": "not-a-date",
+            "startTime": "09:00",
+            "endTime": "10:00"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid startDate"
+    },
+    {
+        "request": "Create Event",
+        "case": "Khoảng thời gian không hợp lệ",
+        "body": {
+            "title": "Event A",
+            "type": "REGULAR",
+            "startDate": "2026-02-10",
+            "startTime": "10:00",
+            "endTime": "09:00"
+        },
+        "expectedStatus": 400,
+        "expectedMessageContains": "Invalid time range"
+    },
+    {
+        "request": "Create Event",
+        "case": "Trùng lịch (overlap)",
+        "body": {
+            "title": "Event B",
+            "type": "REGULAR",
+            "startDate": "2026-02-10",
+            "startTime": "09:30",
+            "endTime": "10:30"
+        },
+        "expectedStatus": 409,
+        "expectedMessageContains": "Time slot already booked"
+    },
+    {
+        "request": "Create Event",
+        "case": "Tạo event thành công",
+        "body": {
+            "title": "Event C",
+            "type": "REGULAR",
+            "startDate": "2026-02-10",
+            "startTime": "11:00",
+            "endTime": "12:00",
+            "room": "A1"
+        },
+        "expectedStatus": 201,
+        "expectedMessageContains": ""
+    }
+]

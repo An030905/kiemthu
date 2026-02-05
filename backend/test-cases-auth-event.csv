@@ -1,0 +1,20 @@
+feature,case,method,endpoint,auth,precondition,body,expectedStatus,expectedMessageContains
+Register,??ng ký thành công,POST,/api/auth/register,NONE,"	Email ch?a t?n t?i","{""email"":""newuser@example.com"",""password"":""StrongPass123"",""fullName"":""Nguyen Van A""}",201,
+Register,Email ?ã t?n t?i,POST,/api/auth/register,NONE,Email ?ã t?n t?i trong h? th?ng,"{""email"":""test@example.com"",""password"":""StrongPass123"",""fullName"":""Nguyen Van A""}",400,User already exists
+Register,Email không h?p l?,POST,/api/auth/register,NONE,,"{""email"":""bad-email"",""password"":""StrongPass123"",""fullName"":""Nguyen Van A""}",400,Invalid email
+Register,M?t kh?u quá ng?n,POST,/api/auth/register,NONE,,"{""email"":""newuser2@example.com"",""password"":""short"",""fullName"":""Nguyen Van A""}",400,Password must be at least
+Register,Thi?u tên,POST,/api/auth/register,NONE,,"{""email"":""newuser3@example.com"",""password"":""StrongPass123""}",400,Full name is required
+Register,Thi?u m?t kh?u,POST,/api/auth/register,NONE,,"{""email"":""newuser4@example.com"",""fullName"":""Nguyen Van A""}",400,Password must be at least
+Register,Thi?u email,POST,/api/auth/register,NONE,,"{""password"":""StrongPass123"",""fullName"":""Nguyen Van A""}",400,Invalid email
+Login,??ng nh?p thành công,POST,/api/auth/login,NONE,"	?ã có user h?p l?","{""email"":""test@example.com"",""password"":""password123""}",200,
+Login,Sai m?t kh?u,POST,/api/auth/login,NONE,User t?n t?i nh?ng m?t kh?u sai,"{""email"":""test@example.com"",""password"":""WrongPass""}",400,Invalid credentials
+Login,Email không h?p l?,POST,/api/auth/login,NONE,,"{""email"":""bad-email"",""password"":""password123""}",400,Invalid credentials
+Login,Thi?u m?t kh?u,POST,/api/auth/login,NONE,,"{""email"":""test@example.com""}",400,Invalid credentials
+Login,Email không t?n t?i,POST,/api/auth/login,NONE,User không t?n t?i,"{""email"":""missing@example.com"",""password"":""password123""}",400,Invalid credentials
+Create Event,Không có token,POST,/api/events,NONE,,"{""title"":""Event A"",""startDate"":""2026-02-10"",""startTime"":""09:00"",""endTime"":""10:00""}",401,No token
+Create Event,Thi?u tr??ng b?t bu?c,POST,/api/events,VALID_TOKEN,,{},400,Missing required fields
+Create Event,Lo?i s? ki?n không h?p l?,POST,/api/events,VALID_TOKEN,,"{""title"":""Event A"",""type"":""INVALID"",""startDate"":""2026-02-10"",""startTime"":""09:00"",""endTime"":""10:00""}",400,Invalid event type
+Create Event,Ngày b?t ??u không h?p l?,POST,/api/events,VALID_TOKEN,,"{""title"":""Event A"",""type"":""REGULAR"",""startDate"":""not-a-date"",""startTime"":""09:00"",""endTime"":""10:00""}",400,Invalid startDate
+Create Event,Kho?ng th?i gian không h?p l?,POST,/api/events,VALID_TOKEN,,"{""title"":""Event A"",""type"":""REGULAR"",""startDate"":""2026-02-10"",""startTime"":""10:00"",""endTime"":""09:00""}",400,Invalid time range
+Create Event,Trùng l?ch (overlap),POST,/api/events,VALID_TOKEN,"	?ã có event 09:00-10:00 cùng ngày","{""title"":""Event B"",""type"":""REGULAR"",""startDate"":""2026-02-10"",""startTime"":""09:30"",""endTime"":""10:30""}",409,Time slot already booked
+Create Event,T?o event thành công,POST,/api/events,VALID_TOKEN,,"{""title"":""Event C"",""type"":""REGULAR"",""startDate"":""2026-02-10"",""startTime"":""11:00"",""endTime"":""12:00"",""room"":""A1""}",201,
