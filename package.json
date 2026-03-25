@@ -8,5 +8,9 @@
     "frontend:build": "npm run build --prefix frontend",
     "frontend:preview": "npm run preview --prefix frontend",
     "start": "npm run start --prefix backend"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2"
   }
 }
